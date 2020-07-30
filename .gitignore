@@ -121,3 +121,7 @@ migrations/
 *.sql
 *.json
 *.pem
+
+*.mat
+*.wav
+*.txt

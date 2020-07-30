@@ -27,7 +27,7 @@ classdef sliding_2AC < matlab.apps.AppBase
     
     properties (Access = public)
         SECOND = 4;
-        Accuracy = 1e6;
+        REPELEMS = 5;
         
         SN = '';
         Tester = '';
@@ -37,7 +37,7 @@ classdef sliding_2AC < matlab.apps.AppBase
         answer = [];
         elems = [5, 10, 20, 50, 100];
         record = [];
-        is_noise = repelem([false], 100);
+        is_noise = [];
         correct = containers.Map('KeyType','int32','ValueType','int32');
         wrong = containers.Map('KeyType','int32','ValueType','int32');
         noise = 0;
@@ -48,9 +48,10 @@ classdef sliding_2AC < matlab.apps.AppBase
     methods (Access = private)
 
         function startupFcn(app)
+            app.is_noise = repelem([false], 2 * 2 * app.REPELEMS * length(app.elems));
             app.record = [app.record; {'Time' 'Press' 'Answer' 'Judge'}];
-            app.correct = containers.Map([app.elems -app.elems], repelem([0], 10));
-            app.wrong = containers.Map([app.elems -app.elems], repelem([0], 10));
+            app.correct = containers.Map([app.elems -app.elems], repelem([0], 2 * length(app.elems)));
+            app.wrong = containers.Map([app.elems -app.elems], repelem([0], 2 * length(app.elems)));
             app.light_timer = timer('StartDelay', .25, 'TimerFcn', @(~,~) TimerCallback(app));
         end
 
@@ -185,17 +186,17 @@ classdef sliding_2AC < matlab.apps.AppBase
 
             base = repmat(wave_map(1000), 1, app.SECOND*1000);
             y = [base];
-            repelems = repelem(app.elems, 5);
+            repelems = repelem(app.elems, app.REPELEMS);
             arr = [repelems -repelems];
             arr = arr(randperm(length(arr)));
-            plot(app.UIAxes, 0:app.SECOND, repelem([0], 5), 'blue');
+            plot(app.UIAxes, 0:app.SECOND, repelem([0], app.SECOND+1), 'blue');
             for idx = 1:length(arr)
                 yy = [];
                 rev_yy = [];
                 tones = app.SECOND * Fs;
                 if arr(idx) < 0; color = 'green'; step = -1; else; color = 'red'; step = 1; end
-                plot(app.UIAxes, 2*app.SECOND*idx-app.SECOND:2*app.SECOND*idx, repelem([arr(idx)], 5), color);
-                plot(app.UIAxes, 2*app.SECOND*idx:2*app.SECOND*idx+app.SECOND, repelem([0], 5), 'blue');
+                plot(app.UIAxes, 2*app.SECOND*idx-app.SECOND:2*app.SECOND*idx, repelem([arr(idx)], app.SECOND+1), color);
+                plot(app.UIAxes, 2*app.SECOND*idx:2*app.SECOND*idx+app.SECOND, repelem([0], app.SECOND+1), 'blue');
                 for freq = 1000:step:freq_map(arr(idx))
                     tones = tones - 2 * tone_map(freq);
                     yy = [yy wave_map(freq)];
